@@ -11,6 +11,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,15 +34,15 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar mToolbar;
     private int mGenre = 0;
 
-    // --- ここから ---
+
     private DatabaseReference mDatabaseReference;
     private DatabaseReference mGenreRef;
     private ListView mListView;
     private ArrayList<Question> mQuestionArrayList;
     private QuestionsListAdapter mAdapter;
-
+    //子要素に変化があった際によばれるらしい
     private ChildEventListener mEventListener = new ChildEventListener() {
-        @Override
+        @Override//質問の追加時に呼ばれる
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
             String title = (String) map.get("title");
@@ -71,15 +72,18 @@ public class MainActivity extends AppCompatActivity {
 
             Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
             mQuestionArrayList.add(question);
+            Log.d("test","コール"+String.valueOf(mQuestionArrayList));
             mAdapter.notifyDataSetChanged();
         }
 
+        //質問に対する回答が追加されたときに呼ばれる
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
 
             // 変更があったQuestionを探す
-            for (Question question: mQuestionArrayList) {
+            //回答の追加があったときは、一回回答リストを消去してから、再度リストを作り直している？？
+            for (Question question : mQuestionArrayList) {
                 if (dataSnapshot.getKey().equals(question.getQuestionUid())) {
                     // このアプリで変更がある可能性があるのは回答(Answer)のみ
                     question.getAnswers().clear();
@@ -94,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                             question.getAnswers().add(answer);
                         }
                     }
-
+                    Log.d("test","コールチェンジ"+String.valueOf(mQuestionArrayList));
                     mAdapter.notifyDataSetChanged();
                 }
             }
@@ -115,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
-    // --- ここまで追加する ---
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // ログイン済みのユーザーを収録する
 
-                if(mGenre==0){
-                    Snackbar.make(view,"ジャンルを選択してください",Snackbar.LENGTH_LONG).show();
+                if (mGenre == 0) {
+                    Snackbar.make(view, "ジャンルを選択してください", Snackbar.LENGTH_LONG).show();
                     return;
                 }
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -140,9 +144,9 @@ public class MainActivity extends AppCompatActivity {
                 if (user == null) {
                     Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                     startActivity(intent);
-                }else{
-                    Intent intent =new Intent(getApplicationContext(),QuestionSendActivity.class);
-                    intent.putExtra("genre",mGenre);
+                } else {
+                    Intent intent = new Intent(getApplicationContext(), QuestionSendActivity.class);
+                    intent.putExtra("genre", mGenre);
                     startActivity(intent);
                 }
 
@@ -173,18 +177,20 @@ public class MainActivity extends AppCompatActivity {
                 } else if (id == R.id.nav_compter) {
                     mToolbar.setTitle("コンピューター");
                     mGenre = 4;
-                }else if(id==R.id.nav_favorite){
+                } else if (id == R.id.nav_favorite) {
                     mToolbar.setTitle("お気に入り");
-                    mGenre=5;
+                    mGenre = 5;
                 }
 
                 DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
                 drawer.closeDrawer(GravityCompat.START);
 
-                // --- ここから ---
+
                 // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
                 mQuestionArrayList.clear();
+                Log.d("test","クリアーした");
                 mAdapter.setQuestionArrayList(mQuestionArrayList);
+                Log.d("test","セットした");
                 mListView.setAdapter(mAdapter);
 
                 // 選択したジャンルにリスナーを登録する
@@ -193,12 +199,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
                 mGenreRef.addChildEventListener(mEventListener);
-                // --- ここまで追加する ---
+
                 return true;
             }
         });
 
-        // --- ここから ---
+
         // Firebase
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -207,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new QuestionsListAdapter(this);
         mQuestionArrayList = new ArrayList<Question>();
         mAdapter.notifyDataSetChanged();
-        // --- ここまで追加する ---
+
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -236,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent intent=new Intent(getApplicationContext(),SettingActivity.class);
+            Intent intent = new Intent(getApplicationContext(), SettingActivity.class);
             startActivity(intent);
             return true;
         }
