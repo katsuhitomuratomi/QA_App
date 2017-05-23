@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -16,13 +17,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class QuestionDetailActivity extends AppCompatActivity {
 
     private ListView mListView;
     private Question mQuestion;
     private QuestionDetailListAdapter mAdapter;
-
+    private Button button;
+    private FirebaseAuth Auth;
     private DatabaseReference mAnswerRef;
 
     private ChildEventListener mEventListener = new ChildEventListener() {
@@ -32,7 +35,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
 
             String answerUid = dataSnapshot.getKey();
 
-            for(Answer answer : mQuestion.getAnswers()) {
+            for (Answer answer : mQuestion.getAnswers()) {
                 // 同じAnswerUidのものが存在しているときは何もしない
                 if (answerUid.equals(answer.getAnswerUid())) {
                     return;
@@ -77,6 +80,25 @@ public class QuestionDetailActivity extends AppCompatActivity {
         // 渡ってきたQuestionのオブジェクトを保持する
         Bundle extras = getIntent().getExtras();
         mQuestion = (Question) extras.get("question");
+        button=(Button)findViewById(R.id.favorite);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int mgenre=mQuestion.getGenre();
+                Auth=FirebaseAuth.getInstance();
+                FirebaseUser user=Auth.getCurrentUser();
+                DatabaseReference reference =FirebaseDatabase.getInstance().getReference();
+                DatabaseReference ref=reference.child(Const.UsersPATH).child(user.getUid()).child("contents").child(String.valueOf(mgenre));
+                String body=mQuestion.getBody();
+                String name=mQuestion.getName();
+                String title=mQuestion.getTitle();
+                String uid=mQuestion.getUid();
+
+                Map<String,String> data=new HashMap<String, String>();
+                ref.push().setValue(data);
+
+            }
+        });
 
         setTitle(mQuestion.getTitle());
 
@@ -100,8 +122,8 @@ public class QuestionDetailActivity extends AppCompatActivity {
                 } else {
                     // Questionを渡して回答作成画面を起動する
                     // TODO:
-                    Intent intent=new Intent(getApplicationContext(),AnswerSendActivity.class);
-                    intent.putExtra("question",mQuestion);
+                    Intent intent = new Intent(getApplicationContext(), AnswerSendActivity.class);
+                    intent.putExtra("question", mQuestion);
                     startActivity(intent);
                 }
             }

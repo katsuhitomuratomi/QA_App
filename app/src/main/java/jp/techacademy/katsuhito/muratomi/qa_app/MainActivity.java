@@ -45,35 +45,44 @@ public class MainActivity extends AppCompatActivity {
         @Override//質問の追加時に呼ばれる
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
-            String title = (String) map.get("title");
-            String body = (String) map.get("body");
-            String name = (String) map.get("name");
-            String uid = (String) map.get("uid");
-            String imageString = (String) map.get("image");
-            byte[] bytes;
-            if (imageString != null) {
-                bytes = Base64.decode(imageString, Base64.DEFAULT);
+            Log.d("test",String.valueOf(map));
+            if (mGenre == 5) {
+
+
+
             } else {
-                bytes = new byte[0];
-            }
 
-            ArrayList<Answer> answerArrayList = new ArrayList<Answer>();
-            HashMap answerMap = (HashMap) map.get("answers");
-            if (answerMap != null) {
-                for (Object key : answerMap.keySet()) {
-                    HashMap temp = (HashMap) answerMap.get((String) key);
-                    String answerBody = (String) temp.get("body");
-                    String answerName = (String) temp.get("name");
-                    String answerUid = (String) temp.get("uid");
-                    Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
-                    answerArrayList.add(answer);
+
+                String title = (String) map.get("title");
+                String body = (String) map.get("body");
+                String name = (String) map.get("name");
+                String uid = (String) map.get("uid");
+                String imageString = (String) map.get("image");
+                byte[] bytes;
+                if (imageString != null) {
+                    bytes = Base64.decode(imageString, Base64.DEFAULT);
+                } else {
+                    bytes = new byte[0];
                 }
-            }
 
-            Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
-            mQuestionArrayList.add(question);
-            Log.d("test","コール"+String.valueOf(mQuestionArrayList));
-            mAdapter.notifyDataSetChanged();
+                ArrayList<Answer> answerArrayList = new ArrayList<Answer>();
+                HashMap answerMap = (HashMap) map.get("answers");
+                if (answerMap != null) {
+                    for (Object key : answerMap.keySet()) {
+                        HashMap temp = (HashMap) answerMap.get((String) key);
+                        String answerBody = (String) temp.get("body");
+                        String answerName = (String) temp.get("name");
+                        String answerUid = (String) temp.get("uid");
+                        Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
+                        answerArrayList.add(answer);
+                    }
+                }
+
+                Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
+                mQuestionArrayList.add(question);
+                Log.d("test", "コール" + String.valueOf(mQuestionArrayList));
+                mAdapter.notifyDataSetChanged();
+            }
         }
 
         //質問に対する回答が追加されたときに呼ばれる
@@ -98,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                             question.getAnswers().add(answer);
                         }
                     }
-                    Log.d("test","コールチェンジ"+String.valueOf(mQuestionArrayList));
+                    Log.d("test", "コールチェンジ" + String.valueOf(mQuestionArrayList));
                     mAdapter.notifyDataSetChanged();
                 }
             }
@@ -188,16 +197,23 @@ public class MainActivity extends AppCompatActivity {
 
                 // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
                 mQuestionArrayList.clear();
-                Log.d("test","クリアーした");
+                Log.d("test", "クリアーした");
                 mAdapter.setQuestionArrayList(mQuestionArrayList);
-                Log.d("test","セットした");
+                Log.d("test", "セットした");
                 mListView.setAdapter(mAdapter);
 
                 // 選択したジャンルにリスナーを登録する
                 if (mGenreRef != null) {
                     mGenreRef.removeEventListener(mEventListener);
                 }
-                mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+
+                if (mGenre == 5) {
+                    mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(1)).child("-KkB8VTi0hUX8T2-wrVj");
+                } else {
+                    mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+                }
+
+
                 mGenreRef.addChildEventListener(mEventListener);
 
                 return true;
