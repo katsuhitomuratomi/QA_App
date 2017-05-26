@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -15,7 +16,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,25 +83,42 @@ public class QuestionDetailActivity extends AppCompatActivity {
         // 渡ってきたQuestionのオブジェクトを保持する
         Bundle extras = getIntent().getExtras();
         mQuestion = (Question) extras.get("question");
-        button=(Button)findViewById(R.id.favorite);
-        button.setOnClickListener(new View.OnClickListener() {
+
+        FloatingActionButton favorite=(FloatingActionButton)findViewById(R.id.favorite);
+        favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int mgenre=mQuestion.getGenre();
                 Auth=FirebaseAuth.getInstance();
                 FirebaseUser user=Auth.getCurrentUser();
                 DatabaseReference reference =FirebaseDatabase.getInstance().getReference();
-                DatabaseReference ref=reference.child(Const.UsersPATH).child(user.getUid()).child("contents").child(String.valueOf(mgenre));
+                DatabaseReference ref=reference.child(Const.UsersPATH).child(user.getUid()).child("contents");
                 String body=mQuestion.getBody();
                 String name=mQuestion.getName();
                 String title=mQuestion.getTitle();
-                String uid=mQuestion.getUid();
-
+                String qid=mQuestion.getQuestionUid();
+                int genre=mQuestion.getGenre();
+                ArrayList answers=mQuestion.getAnswers();
                 Map<String,String> data=new HashMap<String, String>();
-                ref.push().setValue(data);
+                DatabaseReference answerref=ref.child(Const.AnswersPATH);
+
+                data.put("body",body);
+                data.put("name",name);
+                data.put("title",title);
+                data.put("qid",qid);
+                data.put("genre",String.valueOf(genre));
+                Query query=reference.child(Const.UsersPATH).child(user.getUid()).child("contents").orderByChild("qid").equalTo(mQuestion.getQuestionUid());
+                Log.d(("test"),"クエリには"+String.valueOf(query.toString()));
+                if(query!=null){
+                    ref.push().setValue(data);
+                }
+                //answerref.push().setValue(answers);
+
 
             }
         });
+
+
 
         setTitle(mQuestion.getTitle());
 
