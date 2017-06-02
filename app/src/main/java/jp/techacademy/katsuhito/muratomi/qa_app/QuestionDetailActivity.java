@@ -16,20 +16,20 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class QuestionDetailActivity extends AppCompatActivity {
-
     private ListView mListView;
     private Question mQuestion;
     private QuestionDetailListAdapter mAdapter;
     private Button button;
     private FirebaseAuth Auth;
     private DatabaseReference mAnswerRef;
+    private boolean favoriteflag;
+    FloatingActionButton favorite;
 
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
@@ -79,45 +79,71 @@ public class QuestionDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question_detail);
+        Log.d("test", "オンクリエイトが呼ばれている");
+
+        favorite = (FloatingActionButton) findViewById(R.id.favorite);
+
 
         // 渡ってきたQuestionのオブジェクトを保持する
         Bundle extras = getIntent().getExtras();
         mQuestion = (Question) extras.get("question");
+        favoriteflag = (boolean) extras.get("qflag");
+        Log.d("test", "渡されたフラグは" + String.valueOf(favoriteflag));
 
-        FloatingActionButton favorite=(FloatingActionButton)findViewById(R.id.favorite);
+
+        if (favoriteflag == true) {
+            favorite.setImageResource(R.drawable.btn_pressed);
+            Log.d("test", "お気に入り登録はすでにされているよ");
+        } else {
+            Log.d("test", "お気に入り登録はされていないよ");
+            favorite.setImageResource(R.drawable.btn);
+        }
+
+
         favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int mgenre=mQuestion.getGenre();
-                Auth=FirebaseAuth.getInstance();
-                FirebaseUser user=Auth.getCurrentUser();
-                DatabaseReference reference =FirebaseDatabase.getInstance().getReference();
-                DatabaseReference ref=reference.child(Const.UsersPATH).child(user.getUid()).child("contents");
-                String body=mQuestion.getBody();
-                String name=mQuestion.getName();
-                String title=mQuestion.getTitle();
-                String qid=mQuestion.getQuestionUid();
-                int genre=mQuestion.getGenre();
-                ArrayList answers=mQuestion.getAnswers();
-                Map<String,String> data=new HashMap<String, String>();
-                DatabaseReference answerref=ref.child(Const.AnswersPATH);
 
-                data.put("body",body);
-                data.put("name",name);
-                data.put("title",title);
-                data.put("qid",qid);
-                data.put("genre",String.valueOf(genre));
-                Query query=reference.child(Const.UsersPATH).child(user.getUid()).child("contents").orderByChild("qid").equalTo(mQuestion.getQuestionUid());
-                Log.d(("test"),"クエリには"+String.valueOf(query.toString()));
-                if(query!=null){
-                    ref.push().setValue(data);
+                if (favoriteflag == false) {
+                    Log.d("test", String.valueOf(favoriteflag));
+                    int mgenre = mQuestion.getGenre();
+                    Auth = FirebaseAuth.getInstance();
+                    FirebaseUser user = Auth.getCurrentUser();
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference ref = reference.child(Const.UsersPATH).child(user.getUid()).child("contents");
+                    String body = mQuestion.getBody();
+                    String name = mQuestion.getName();
+                    String title = mQuestion.getTitle();
+                    String qid = mQuestion.getQuestionUid();
+                    int genre = mQuestion.getGenre();
+                    String uid = mQuestion.getUid();
+                    ArrayList answers = mQuestion.getAnswers();
+                    Map<String, String> data = new HashMap<String, String>();
+
+                    data.put("uid", uid);
+                    data.put("body", body);
+                    data.put("name", name);
+                    data.put("title", title);
+                    data.put("genre", String.valueOf(genre));
+                    String key = ref.push().getKey();
+                    ref.child(qid).setValue(data);
+                    Log.d("test", "pushされたのは" + String.valueOf(key));
+                    DatabaseReference answerref = ref.child(qid).child(Const.AnswersPATH);
+                    for (int i=0;i<answers.size();i++){
+                        answerref.push().setValue(answers.get(i));
+
+                    }
+
+
+                    favorite.setImageResource(R.drawable.btn_pressed);
+                    favoriteflag = true;
+                    //answerref.push().setValue(answers);
+
                 }
-                //answerref.push().setValue(answers);
 
 
             }
         });
-
 
 
         setTitle(mQuestion.getTitle());

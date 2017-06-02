@@ -9,8 +9,10 @@
     tools:showIn="@layout/activity_main">
 
     <ListView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/listView" />
+        android:layout_width="304dp"
+        android:layout_height="437dp"
+        android:id="@+id/listView"
+        tools:layout_editor_absoluteY="8dp"
+        tools:layout_editor_absoluteX="8dp" />
 
 </android.support.constraint.ConstraintLayout>
