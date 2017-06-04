@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override//質問の追加時に呼ばれる
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            Log.d("test","現在のフラグは"+String.valueOf(flag));
             HashMap map = (HashMap) dataSnapshot.getValue();
             if (flag == true) {
                 mGenre = Integer.parseInt((String) map.get("genre"));
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             ArrayList<Answer> answerArrayList = new ArrayList<Answer>();
-            Log.d("test",String.valueOf(map));
+            Log.d("test", String.valueOf(map));
             HashMap answerMap = (HashMap) map.get("answers");
 
             if (answerMap != null) {
@@ -128,6 +129,34 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    private ChildEventListener flagcheck = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            String map = (String) dataSnapshot.getKey();
+            favoritelist.add(map);
+            Log.d("test", "お気に入り質問は" + String.valueOf(map));
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
 
 
     @Override
@@ -139,36 +168,12 @@ public class MainActivity extends AppCompatActivity {
         favoritelist = new ArrayList<>();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(Const.UsersPATH).child("contents");
-        databaseReference.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String map = (String) dataSnapshot.getValue();
-                favoritelist.add(map);
-
-            }
+        if (user != null) {
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(Const.UsersPATH).child(user.getUid()).child("contents");
+            databaseReference.addChildEventListener(flagcheck);
+        }
 
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
         Log.d("test", String.valueOf(favoritelist));
         FloatingActionButton button = (FloatingActionButton) findViewById(R.id.fab);
         button.setOnClickListener(new View.OnClickListener() {
@@ -276,15 +281,11 @@ public class MainActivity extends AppCompatActivity {
                 // Questionのインスタンスを渡して質問詳細画面を起動する
                 Intent intent = new Intent(getApplicationContext(), QuestionDetailActivity.class);
                 intent.putExtra("question", mQuestionArrayList.get(position));
-                Log.d("test", String.valueOf(mQuestionArrayList.get(position).getQuestionUid()));
-                Log.d("test", "画面移行" + String.valueOf(fabflag));
                 for (int i = 0; i < favoritelist.size(); i++) {
                     if (mQuestionArrayList.get(position).getQuestionUid().equals(favoritelist.get(i))) {
-                        Log.d("test", String.valueOf(mQuestionArrayList.get(position).getQuestionUid().equals(favoritelist.get(i))));
                         fabflag = true;
                     }
                 }
-                Log.d("test", "画面移行する直前" + String.valueOf(fabflag));
                 intent.putExtra("qflag", fabflag);
                 startActivity(intent);
             }
@@ -317,8 +318,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onRestart() {
-        Log.d("test", "よばれたリスタート");
         fabflag = false;
+
+        favoritelist = new ArrayList<>();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(Const.UsersPATH).child("contents");
+        databaseReference.addChildEventListener(flagcheck);
         super.onRestart();
     }
 }

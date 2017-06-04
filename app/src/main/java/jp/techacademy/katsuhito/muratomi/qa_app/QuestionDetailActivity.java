@@ -51,6 +51,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
 
             Answer answer = new Answer(body, name, uid, answerUid);
             mQuestion.getAnswers().add(answer);
+            Log.d("test","回答が追加された");
             mAdapter.notifyDataSetChanged();
         }
 
