@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override//質問の追加時に呼ばれる
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            Log.d("test","現在のフラグは"+String.valueOf(flag));
             HashMap map = (HashMap) dataSnapshot.getValue();
             if (flag == true) {
                 mGenre = Integer.parseInt((String) map.get("genre"));
@@ -66,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
             ArrayList<Answer> answerArrayList = new ArrayList<Answer>();
-            Log.d("test", String.valueOf(map));
             HashMap answerMap = (HashMap) map.get("answers");
 
             if (answerMap != null) {
@@ -174,13 +172,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        Log.d("test", String.valueOf(favoritelist));
         FloatingActionButton button = (FloatingActionButton) findViewById(R.id.fab);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // ログイン済みのユーザーを収録する
-                Log.d("test", "現在選択されたジャンル番号は" + String.valueOf(mGenre));
                 if (mGenre == 0) {
                     Snackbar.make(view, "ジャンルを選択してください", Snackbar.LENGTH_LONG).show();
                     return;
@@ -253,8 +249,10 @@ public class MainActivity extends AppCompatActivity {
                     FirebaseAuth auth = FirebaseAuth.getInstance();
                     String user = auth.getCurrentUser().getUid();
                     mGenreRef = mDatabaseReference.child(Const.UsersPATH).child(user).child("contents");
+                    Log.d("test","セットされたリスナーはuser");
                 } else {
                     mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+                    Log.d("test","セットされたリスナーはcontents");
                 }
 
 
