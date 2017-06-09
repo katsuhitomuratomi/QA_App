@@ -51,7 +51,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
 
             Answer answer = new Answer(body, name, uid, answerUid);
             mQuestion.getAnswers().add(answer);
-            Log.d("test","回答が追加された");
+            Log.d("test", "回答が追加された");
             mAdapter.notifyDataSetChanged();
         }
 
@@ -106,8 +106,6 @@ public class QuestionDetailActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 if (favoriteflag == false) {
-                    Log.d("test", String.valueOf(favoriteflag));
-                    int mgenre = mQuestion.getGenre();
                     Auth = FirebaseAuth.getInstance();
                     FirebaseUser user = Auth.getCurrentUser();
                     DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
@@ -120,17 +118,18 @@ public class QuestionDetailActivity extends AppCompatActivity {
                     String uid = mQuestion.getUid();
                     ArrayList answers = mQuestion.getAnswers();
                     Map<String, String> data = new HashMap<String, String>();
-
+                    data.put("qid",qid);
                     data.put("uid", uid);
                     data.put("body", body);
                     data.put("name", name);
                     data.put("title", title);
                     data.put("genre", String.valueOf(genre));
-                    String key = ref.push().getKey();
                     ref.child(qid).setValue(data);
-                    Log.d("test", "pushされたのは" + String.valueOf(key));
                     DatabaseReference answerref = ref.child(qid).child(Const.AnswersPATH);
-                    for (int i=0;i<answers.size();i++){
+                    for (int i = 0; i < answers.size(); i++) {
+//answersのidもそのまま取得したい。answers.get(i).getAnswerUidとかでいけるかと思ったが無理だった
+
+
                         answerref.push().setValue(answers.get(i));
 
                     }

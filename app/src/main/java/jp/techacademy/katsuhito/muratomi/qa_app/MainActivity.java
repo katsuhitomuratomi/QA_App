@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar mToolbar;
     private int mGenre = 0;
     private boolean flag = false;
-
+    HashMap favorites;
     private DatabaseReference mDatabaseReference;
     private DatabaseReference mGenreRef;
     private ListView mListView;
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
             if (flag == true) {
-                mGenre = Integer.parseInt((String) map.get("genre"));
+            //    mGenre = Integer.parseInt((String) map.get("genre"));
 
             }
 
@@ -130,9 +130,10 @@ public class MainActivity extends AppCompatActivity {
     private ChildEventListener flagcheck = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            favorites=(HashMap)dataSnapshot.getValue();
             String map = (String) dataSnapshot.getKey();
             favoritelist.add(map);
-            Log.d("test", "お気に入り質問は" + String.valueOf(map));
+            Log.d("test", "お気に入り質問は" + String.valueOf(favorites));
         }
 
         @Override
@@ -248,15 +249,24 @@ public class MainActivity extends AppCompatActivity {
                 if (flag == true) {
                     FirebaseAuth auth = FirebaseAuth.getInstance();
                     String user = auth.getCurrentUser().getUid();
-                    mGenreRef = mDatabaseReference.child(Const.UsersPATH).child(user).child("contents");
-                    Log.d("test","セットされたリスナーはuser");
+                    for(int i=0;i<favoritelist.size();i++){
+                        String s=(String )favorites.get("qid");
+                        String g=(String)favorites.get("genre");
+                        mGenre=Integer.parseInt((String)favorites.get("genre"));
+                        //    mGenre = Integer.parseInt((String) map.get("genre"));
+                        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(g).child(s);
+                        mGenreRef.addChildEventListener(mEventListener);
+                    }
+                    Log.d("test", "セットされたリスナーはuser");
                 } else {
                     mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-                    Log.d("test","セットされたリスナーはcontents");
+                    mGenreRef.addChildEventListener(mEventListener);
+                    Log.d("test", "セットされたリスナーはcontents");
+
                 }
 
 
-                mGenreRef.addChildEventListener(mEventListener);
+
 
                 return true;
             }
@@ -317,11 +327,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         fabflag = false;
-
+        Log.d("test", "オンリスタート" + "フラグの状態は" + String.valueOf(fabflag));
         favoritelist = new ArrayList<>();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(Const.UsersPATH).child("contents");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child(Const.UsersPATH).child(user.getUid()).child("contents");
         databaseReference.addChildEventListener(flagcheck);
         super.onRestart();
     }
